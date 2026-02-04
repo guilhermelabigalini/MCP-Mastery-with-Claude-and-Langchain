@@ -1,11 +1,13 @@
 # client.py - Research Assistant with Firecrawl and LangGraph
 import asyncio
+import traceback
 from typing import List, Annotated
+from langchain_google_genai import ChatGoogleGenerativeAI
 from typing_extensions import TypedDict
 
 # from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_ollama import ChatOllama
+#from langchain_ollama import ChatOllama
 from langgraph.prebuilt import tools_condition, ToolNode
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import AnyMessage, add_messages
@@ -36,7 +38,15 @@ async def create_research_agent():
     """Create a LangGraph agent with research and web crawling capabilities."""
     
     # Initialize LLM
-    llm = ChatOllama(model="qwen3", base_url="http://localhost:11434/")
+    #llm = ChatOllama(model="qwen3", base_url="http://localhost:11434/")
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash", #"gemini-3-pro-preview",
+        temperature=1.0,  # Gemini 3.0+ defaults to 1.0
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+        # other params...
+    )
     
     # Get tools from all MCP servers
     tools = await client.get_tools()
@@ -152,6 +162,8 @@ async def main():
                 print("Please try again or type 'quit' to exit.\n")
     
     except Exception as e:
+
+        traceback.print_exc()
         print(f"❌ Failed to start research assistant: {e}")
         print("Please check your API keys and server configuration.")
 

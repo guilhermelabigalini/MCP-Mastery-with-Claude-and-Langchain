@@ -1,6 +1,7 @@
 # server.py - Research Assistant MCP Server with ChromaDB
 # uv add chromadb langchain-chroma langchain-ollama
 
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from mcp.server.fastmcp import FastMCP
 from pathlib import Path
 from typing import List, Set, Dict, Any
@@ -12,20 +13,27 @@ import shutil
 import hashlib
 import json
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Initialize MCP Server
 mcp = FastMCP("Research Assistant")
 
 # Constants
 current_dir = Path(__file__).parent.absolute()
 CHROMA_DB_ROOT = current_dir / "research_chroma_dbs"
-EMBED_MODEL = "nomic-embed-text"
-OLLAMA_BASE_URL = "http://localhost:11434"
+# EMBED_MODEL = "nomic-embed-text"
+# OLLAMA_BASE_URL = "http://localhost:11434"
 
-# Initialize embeddings once
-embeddings = OllamaEmbeddings(
-    model=EMBED_MODEL,
-    base_url=OLLAMA_BASE_URL
-)
+# # Initialize embeddings once
+# embeddings = OllamaEmbeddings(
+#     model=EMBED_MODEL,
+#     base_url=OLLAMA_BASE_URL
+# )
+
+embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+#vector = embeddings.embed_query("hello, world!")
+#print(vector[:5])
 
 def get_content_hash(content: str) -> str:
     """Generate a hash for content to check for duplicates."""
@@ -254,8 +262,8 @@ def get_topic_info(topic: str) -> str:
                 - Document Count: {doc_count}
                 - Hash Records: {hash_count}
                 - Database Path: {topic_path}
-                - Embedding Model: {EMBED_MODEL}
-                - Ollama URL: {OLLAMA_BASE_URL}"""
+                - Embedding Model: EMBED_MODEL
+                - Ollama URL: OLLAMA_BASE_URL"""
         
         return info
         
@@ -264,4 +272,5 @@ def get_topic_info(topic: str) -> str:
 
 if __name__ == "__main__":
 
-    mcp.run(transport="stdio")
+    #mcp.run(transport="stdio")
+    mcp.run(transport="streamable-http")
